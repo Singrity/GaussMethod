@@ -22,26 +22,47 @@ FILTER_CENTER_INDEX = len(FILTER) // 2
 
 
 image = Image.open('Pagani.jpg')
-IMAGE_MATRIX = np.asarray(image, 'int32')
+IMAGE = np.asarray(image, 'int32')
 
-plt.imshow(IMAGE_MATRIX)
+plt.imshow(IMAGE)
 plt.show()
 
-RED, GREEN, BLUE = IMAGE_MATRIX[:, :, 0], IMAGE_MATRIX[:, :, 1], IMAGE_MATRIX[:, :, 2]
+
+def blur(image_matrix, kernel):
+    red, green, blue = image_matrix[:, :, 0], image_matrix[:, :, 1], image_matrix[:, :, 2]
+    print(red.shape, green.shape)
+
+    # padding
+    red = np.pad(red, ((len(kernel) // 2, len(kernel) // 2), (len(kernel) // 2, len(kernel) // 2)), mode='constant',
+                 constant_values=0)
+    green = np.pad(green, ((len(kernel) // 2, len(kernel) // 2), (len(kernel) // 2, len(kernel) // 2)), mode='constant',
+                   constant_values=0)
+    blue = np.pad(blue, ((len(kernel) // 2, len(kernel) // 2), (len(kernel) // 2, len(kernel) // 2)), mode='constant',
+                  constant_values=0)
+    print(red.shape, green.shape)
+
+    # main loop
+    for i in range(red.shape[0] - (len(FILTER) - 1)):
+        for j in range(red.shape[1] - (len(FILTER) - 1)):
+
+            red[i + FILTER_CENTER_INDEX, j + FILTER_CENTER_INDEX] = np.sum(red[i:i+len(kernel), j:j+len(kernel)] *
+                                                                           kernel / np.sum(kernel))
+            green[i + FILTER_CENTER_INDEX, j + FILTER_CENTER_INDEX] = np.sum(green[i:i+len(kernel), j:j+len(kernel)] *
+                                                                             kernel / np.sum(kernel))
+            blue[i + FILTER_CENTER_INDEX, j + FILTER_CENTER_INDEX] = np.sum(blue[i:i+len(kernel), j:j+len(kernel)] *
+                                                                            kernel / np.sum(kernel))
+    # crop
+    red = red[len(kernel) // 2:red.shape[0] - len(kernel) // 2, len(kernel) // 2:red.shape[1] - len(kernel) // 2]
+    green = green[len(kernel) // 2:green.shape[0] - len(kernel) // 2, len(kernel) // 2:green.shape[1] - len(kernel) // 2]
+    blue = blue[len(kernel) // 2:blue.shape[0] - len(kernel) // 2, len(kernel) // 2:blue.shape[1] - len(kernel) // 2]
+
+    print(red.shape, green.shape, blue.shape)
+
+    image = np.dstack((red, green, blue))
+    return image
 
 
-for i in range(RED.shape[0] - (len(FILTER) - 1)):
-    for j in range(RED.shape[1] - (len(FILTER) - 1)):
-
-        RED[i + FILTER_CENTER_INDEX, j + FILTER_CENTER_INDEX] = np.sum(RED[i:i+len(FILTER), j:j+len(FILTER)] * FILTER / np.sum(FILTER))
-        GREEN[i + FILTER_CENTER_INDEX, j + FILTER_CENTER_INDEX] = np.sum(GREEN[i:i+len(FILTER), j:j+len(FILTER)] * FILTER / np.sum(FILTER))
-        BLUE[i + FILTER_CENTER_INDEX, j + FILTER_CENTER_INDEX] = np.sum(BLUE[i:i+len(FILTER), j:j+len(FILTER)] * FILTER / np.sum(FILTER))
-
-blured_image = np.dstack((RED, GREEN, BLUE))
-
-
-
-plt.imshow(blured_image)
+plt.imshow(blur(IMAGE, FILTER))
 plt.show()
 
 
